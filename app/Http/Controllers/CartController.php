@@ -42,9 +42,12 @@ class CartController extends Controller
 
         if ($product->stock < $request->quantity) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Not enough stock'], 422);
+                return Inertia::render('Cart/Index', [
+                    'cart' => $this->getCartPayload($request),
+                    'flash' => ['error' => 'Not enough stock for ' . $product->name],
+                ])->toResponse($request)->setStatusCode(422);
             }
-            return back()->with('error', 'Not enough stock')->withInput();
+            return back()->with('error', 'Not enough stock for ' . $product->name);
         }
 
         $order = $this->getOrCreateCart($request);
@@ -65,7 +68,10 @@ class CartController extends Controller
         $this->updateOrderTotal($order);
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Product added to cart']);
+            return Inertia::render('Cart/Index', [
+                'cart' => $this->getCartPayload($request),
+                'flash' => ['success' => 'Product added to cart'],
+            ]);
         }
 
         return redirect('/cart')->with('success', 'Product added to cart');
@@ -79,7 +85,10 @@ class CartController extends Controller
 
         if ($item->product->stock < $request->quantity) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Not enough stock'], 422);
+                return Inertia::render('Cart/Index', [
+                    'cart' => $this->getCartPayload($request),
+                    'flash' => ['error' => 'Not enough stock'],
+                ])->toResponse($request)->setStatusCode(422);
             }
             return back()->with('error', 'Not enough stock')->withInput();
         }
@@ -89,7 +98,10 @@ class CartController extends Controller
         $this->updateOrderTotal($item->order);
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Cart updated']);
+            return Inertia::render('Cart/Index', [
+                'cart' => $this->getCartPayload($request),
+                'flash' => ['success' => 'Cart updated'],
+            ]);
         }
 
         return redirect('/cart')->with('success', 'Cart updated');
@@ -103,20 +115,32 @@ class CartController extends Controller
         $this->updateOrderTotal($order);
 
         if (request()->expectsJson()) {
-            return response()->json(['message' => 'Item removed']);
+            return Inertia::render('Cart/Index', [
+                'cart' => $this->getCartPayload(request()),
+                'flash' => ['success' => 'Item removed'],
+            ]);
         }
 
         return redirect('/cart')->with('success', 'Item removed');
     }
 
-    /* ---------------- HELPERS ---------------- */
+ 
 
-    private function getUserCart(Request $request)
+    private function getCartPayload(Request $request)
     {
-        return $request->user()
+        $cart = $request->user()
             ->orders()
             ->where('status', 'pending')
+            ->with('orderItems.product')
             ->first();
+
+        return $cart
+            ? [
+                'id' => $cart->id,
+                'total' => $cart->total,
+                'orderItems' => $cart->orderItems ?? [],
+            ]
+            : null;
     }
 
     private function getOrCreateCart(Request $request)

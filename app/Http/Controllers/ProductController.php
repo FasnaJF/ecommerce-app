@@ -10,8 +10,11 @@ class ProductController extends Controller
 {
     public function index()
     {
+        $products = Product::select('id', 'name', 'price', 'image', 'stock')
+            ->paginate(12);
+
         return Inertia::render('Products/Index', [
-            'products' => Product::paginate(12),
+            'products' => $products,
         ]);
     }
 

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\LowStockAlert;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 
 class OrderController extends Controller
@@ -26,7 +28,17 @@ class OrderController extends Controller
 
         DB::transaction(function () use ($order) {
             foreach ($order->orderItems as $item) {
+                if ($item->product->stock < $item->quantity) {
+                    abort(422, 'Insufficient stock for ' . $item->product->name);
+                }
+
+                // Decrement stock
                 $item->product->decrement('stock', $item->quantity);
+
+                // Check for low stock (<5)
+                if ($item->product->stock < 5) {
+                    Mail::to('admin@example.com')->queue(new LowStockAlert($item->product));
+                }
             }
 
             $order->update(['status' => 'completed']);
