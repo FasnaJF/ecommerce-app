@@ -37,13 +37,32 @@ class OrderController extends Controller
 
     public function history(Request $request)
     {
+        $orders = $request->user()
+            ->orders()
+            ->where('status', '!=', 'pending')
+            ->with(['orderItems.product']) // <--- THIS IS KEY
+            ->latest()
+            ->get()
+            ->map(function ($order) {
+                return [
+                    'id' => $order->id,
+                    'total' => $order->total,
+                    'status' => $order->status,
+                    'created_at' => $order->created_at,
+                    'orderItems' => $order->orderItems->map(fn($item) => [
+                        'id' => $item->id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'total' => $item->quantity * $item->price,
+                        'product' => [
+                            'name' => $item->product->name,
+                        ],
+                    ]),
+                ];
+            });
+
         return Inertia::render('Orders/Index', [
-            'orders' => $request->user()
-                ->orders()
-                ->where('status', '!=', 'pending')
-                ->with('orderItems.product')
-                ->latest()
-                ->get(),
+            'orders' => $orders,
         ]);
     }
 
