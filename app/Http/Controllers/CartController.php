@@ -6,17 +6,30 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+
 
 class CartController extends Controller
 {
     public function index(Request $request)
     {
-        $order = $this->getUserCart($request);
+        $cart = $request->user()
+            ->orders()
+            ->where('status', 'pending')
+            ->with('orderItems.product')
+            ->first();
 
-        return $order
-            ? $order->load('items.product')
-            : response()->json(['message' => 'Cart is empty'], 200);
+        return Inertia::render('Cart/Index', [
+            'cart' => $cart
+                ? [
+                    'id' => $cart->id,
+                    'total' => $cart->total,
+                    'orderItems' => $cart->orderItems ?? [],
+                ]
+                : null,
+        ]);
     }
+
 
     public function add(Request $request)
     {
@@ -28,18 +41,21 @@ class CartController extends Controller
         $product = Product::findOrFail($request->product_id);
 
         if ($product->stock < $request->quantity) {
-            return response()->json(['message' => 'Not enough stock'], 422);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Not enough stock'], 422);
+            }
+            return back()->with('error', 'Not enough stock')->withInput();
         }
 
         $order = $this->getOrCreateCart($request);
 
-        $item = $order->items()->where('product_id', $product->id)->first();
+        $item = $order->orderItems()->where('product_id', $product->id)->first();
 
         if ($item) {
             $item->quantity += $request->quantity;
             $item->save();
         } else {
-            $order->items()->create([
+            $order->orderItems()->create([
                 'product_id' => $product->id,
                 'quantity'   => $request->quantity,
                 'price'      => $product->price,
@@ -48,7 +64,11 @@ class CartController extends Controller
 
         $this->updateOrderTotal($order);
 
-        return response()->json(['message' => 'Product added to cart']);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Product added to cart']);
+        }
+
+        return redirect('/cart')->with('success', 'Product added to cart');
     }
 
     public function update(Request $request, OrderItem $item)
@@ -58,14 +78,21 @@ class CartController extends Controller
         ]);
 
         if ($item->product->stock < $request->quantity) {
-            return response()->json(['message' => 'Not enough stock'], 422);
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Not enough stock'], 422);
+            }
+            return back()->with('error', 'Not enough stock')->withInput();
         }
 
         $item->update(['quantity' => $request->quantity]);
 
         $this->updateOrderTotal($item->order);
 
-        return response()->json(['message' => 'Cart updated']);
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Cart updated']);
+        }
+
+        return redirect('/cart')->with('success', 'Cart updated');
     }
 
     public function remove(OrderItem $item)
@@ -75,7 +102,11 @@ class CartController extends Controller
         $item->delete();
         $this->updateOrderTotal($order);
 
-        return response()->json(['message' => 'Item removed']);
+        if (request()->expectsJson()) {
+            return response()->json(['message' => 'Item removed']);
+        }
+
+        return redirect('/cart')->with('success', 'Item removed');
     }
 
     /* ---------------- HELPERS ---------------- */
@@ -100,7 +131,8 @@ class CartController extends Controller
 
     private function updateOrderTotal(Order $order)
     {
-        $total = $order->items->sum(fn ($item) =>
+        $total = $order->orderItems->sum(
+            fn($item) =>
             $item->quantity * $item->price
         );
 
