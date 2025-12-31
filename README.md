@@ -115,7 +115,6 @@ php artisan optimize
 - Track all your previous purchases
 
 ### Account
-- Click on your name in the navbar to access account settings
 - Click **Logout** to exit your account
 
 ## 📁 Project Structure
@@ -157,8 +156,6 @@ ecommerce-app/
 
 The application uses **Laravel Fortify** for authentication, providing:
 - User registration
-- Email verification
-- Two-factor authentication support
 - Password reset functionality
 
 ### Routes
