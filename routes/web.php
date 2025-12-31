@@ -20,8 +20,9 @@ Route::get('/', function () {
 
 // Protected routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/cart', [CartController::class, 'index']);
-    Route::get('/orders', [OrderController::class, 'history']);
+    Route::get('/products', [ProductController::class, 'index'])->name('products');
+    Route::get('/cart', [CartController::class, 'index'])->name('cart');
+    Route::get('/orders', [OrderController::class, 'history'])->name('orders');
 
     Route::post('/cart/add', [CartController::class, 'add']);
     Route::put('/cart/item/{item}', [CartController::class, 'update']);
