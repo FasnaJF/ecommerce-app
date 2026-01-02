@@ -52,7 +52,7 @@ const removeItem = (itemId: number) => {
                     <input type="number" min="1" :value="item.quantity"
                         @change="updateQty(item.id, +$event?.target?.value)" class="w-16 border" />
                 </td>
-                <td>{{ item.quantity * item.price }}</td>
+                <td>{{ (item.quantity * item.price).toFixed(2) }}</td>
                 <td>
                     <button class="text-red-600" @click="removeItem(item.id)">
                         Remove
@@ -62,7 +62,7 @@ const removeItem = (itemId: number) => {
         </table>
 
         <div class="mt-4 text-right font-bold">
-            Total: {{ cart.total }} MAD
+            Total: {{ cart.total }} USD
         </div>
 
         <button class="mt-4 bg-green-600 text-white px-6 py-2 rounded" @click="router.post('/checkout')">

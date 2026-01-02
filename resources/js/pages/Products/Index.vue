@@ -37,7 +37,7 @@ const addToCart = (productId: number) => {
             <!-- <img v-if="p.image" :src="p.image" class="h-40 w-full object-cover" /> -->
 
             <h3 class="font-bold mt-2 text-gray-900 dark:text-gray-100">{{ p.name }}</h3>
-            <p class="text-gray-700 dark:text-gray-300">{{ p.price }} MAD</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ p.price }} USD</p>
             <p class="mt-1 text-sm"
                 :class="p.stock < 5 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-gray-600 dark:text-gray-400'">
                 Available: {{ p.stock }}

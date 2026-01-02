@@ -55,7 +55,7 @@ const openOrder = ref<number | null>(null);
                 </span>
 
                 <div class="font-bold">
-                    <span class="text-gray-900 dark:text-gray-100">{{ order.total }} MAD</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ order.total }} USD</span>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@ const openOrder = ref<number | null>(null);
                         class="text-sm text-gray-700 dark:text-gray-300">
                         <td>{{ item.product.name }}</td>
                         <td>{{ item.quantity }}</td>
-                        <td>{{ item.quantity * item.price }}</td>
+                        <td>{{ (item.quantity * item.price).toFixed(2) }}</td>
                     </tr>
                 </tbody>
             </table>
