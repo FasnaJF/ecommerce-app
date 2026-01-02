@@ -33,32 +33,38 @@ const removeItem = (itemId: number) => {
 </script>
 
 <template>
-    <div v-if="!cart || cart.orderItems.length === 0" class="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 rounded shadow">
+    <div v-if="!cart || cart.orderItems.length === 0"
+        class="bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100 rounded shadow">
         Your cart is empty 🛒
     </div>
 
     <div v-else>
         <table class="w-full border">
-            <tr>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Price</th>
-                <th></th>
-            </tr>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                    <th></th>
+                </tr>
 
-            <tr v-for="item in cart.orderItems" :key="item.id">
-                <td>{{ item.product.name }}</td>
-                <td>
-                    <input type="number" min="1" :value="item.quantity"
-                        @change="updateQty(item.id, +$event?.target?.value)" class="w-16 border" />
-                </td>
-                <td>{{ (item.quantity * item.price).toFixed(2) }}</td>
-                <td>
-                    <button class="text-red-600" @click="removeItem(item.id)">
-                        Remove
-                    </button>
-                </td>
-            </tr>
+            </thead>
+            <tbody>
+
+                <tr v-for="item in cart.orderItems" :key="item.id">
+                    <td>{{ item.product.name }}</td>
+                    <td>
+                        <input type="number" min="1" :value="item.quantity"
+                            @change="updateQty(item.id, +$event?.target?.value)" class="w-16 border" />
+                    </td>
+                    <td>{{ (item.quantity * item.price).toFixed(2) }}</td>
+                    <td>
+                        <button class="text-red-600" @click="removeItem(item.id)">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
         </table>
 
         <div class="mt-4 text-right font-bold">
